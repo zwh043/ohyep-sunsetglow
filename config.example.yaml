@@ -1,0 +1,84 @@
+# ============================================================
+#  Ohyep SunsetGlow 配置
+#  火烧云（朝霞/晚霞）多源预测推送
+# ============================================================
+
+# ---- 监控地点：想加多少个都行 ----
+# name        ：显示用名字（推送里出现），中文。
+# latitude/longitude：源①(Ohyep算法)和源③(彩云)用的精确坐标。
+#   填了就盯这个点；不填则按 name 自动地理编码到市中心。
+#   想盯具体拍摄点（如海边/山顶）强烈建议手填，广州这种大城市
+#   南北差异很大，坐标越准结果越贴合。
+# sunsetbot_city：源②(sunsetbot.top)查询用名。sunsetbot 认识区级名
+#   （如"天河区""前海"），填它可让源②更贴近你的点；不填则用 name。
+locations:
+  - name: 广州天河
+    latitude: 23.1239
+    longitude: 113.3611
+    sunsetbot_city: 天河区
+  - name: 深圳南山
+    latitude: 22.5333
+    longitude: 113.9300
+    sunsetbot_city: 南山区
+
+# ---- 推送时机 ----
+schedule:
+  # 朝霞：前一晚的这个钟点检查次日日出（方便早起准备）
+  sunrise_notify_hour: 22
+  # 晚霞：两个推送时段，都会推（注意 Server酱免费版每天 5 条额度）
+  #   afternoon_hour: 下午固定钟点先预告一次（如 15 表示 15:00）
+  #   pre_sunset_hours_before: 日落前几小时再推一次临场提醒
+  sunset_afternoon_hour: 15
+  sunset_pre_hours_before: 1
+  # 主循环检查间隔（分钟）
+  check_interval_minutes: 15
+  timezone: Asia/Shanghai
+
+# ============================================================
+#  三个预测数据源 —— 任一触发即推送（宁杀错不放过）
+# ============================================================
+sources:
+
+  # 源①：Ohyep算法（Open-Meteo 免费 API + 火烧云评分）
+  own_algo:
+    enabled: true
+    # 评分 0-100，达到此值即触发
+    threshold: 55
+
+  # 源②：sunsetbot.top 抓取（专业火烧云预测网站）
+  sunsetbot:
+    enabled: true
+    # quality 0-1，达到此值即触发。原 0.36 几月未触发，降低试用
+    threshold: 0.30
+
+  # 源③：彩云天气（总云量评分，需免费注册 token 后启用）
+  caiyun:
+    enabled: false
+    # token 也可用环境变量 CAIYUN_TOKEN 覆盖（推荐放 .env，不入库）
+    token: ""
+    threshold: 55
+
+# ---- 推送渠道 ----
+push:
+  serverchan:
+    enabled: true
+    # Server酱 SendKey；也可用环境变量 SERVERCHAN_SENDKEY 覆盖（优先级更高）
+    send_key: ""
+  wxpusher:
+    enabled: false
+    app_token: ""
+    uids: []
+    topic_ids: []
+
+# ---- 反馈网页（用于记录朝晚霞实际是否出现、统计准确率） ----
+web:
+  enabled: true
+  host: "0.0.0.0"
+  port: 8080
+  # 推送里"点此反馈"的链接。填了优先用（如自建的公众号反馈文章），方便手机/他人反馈；
+  # 留空则用本地网页 http://localhost:<port>/
+  feedback_url: ""
+
+# ---- 数据存储 ----
+storage:
+  db_path: "data/ohyep.db"

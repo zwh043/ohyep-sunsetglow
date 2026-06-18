@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ohyep SunsetGlow · 推送记录与准确率</title>
+  <style>
+    :root { --fg:#222; --muted:#888; --line:#eee; --accent:#e8743b; }
+    * { box-sizing: border-box; }
+    body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+           margin:0; padding:0 16px 48px; color:var(--fg); background:#fafafa; }
+    .wrap { max-width:880px; margin:0 auto; }
+    h1 { font-size:22px; margin:24px 0 4px; }
+    h1 .sun { color:var(--accent); }
+    .sub { color:var(--muted); font-size:13px; margin-bottom:24px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:10px;
+            padding:16px; margin-bottom:14px; }
+    .stats { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:24px; }
+    .stat { flex:1; min-width:150px; background:#fff; border:1px solid var(--line);
+            border-radius:10px; padding:14px; }
+    .stat .name { font-size:13px; color:var(--muted); }
+    .stat .acc { font-size:26px; font-weight:600; color:var(--accent); }
+    .stat .cnt { font-size:12px; color:var(--muted); }
+    .ev-head { display:flex; justify-content:space-between; align-items:baseline; }
+    .ev-title { font-weight:600; }
+    .ev-time { font-size:12px; color:var(--muted); }
+    .kind { display:inline-block; font-size:12px; padding:2px 8px; border-radius:20px;
+            background:#fff3ec; color:var(--accent); margin-left:6px; }
+    .sources { margin:10px 0; font-size:13px; color:#555; }
+    .sources div { padding:2px 0; }
+    .fb { margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .fb form { display:inline; }
+    .fb button { border:1px solid var(--line); background:#fff; border-radius:8px;
+                 padding:6px 12px; font-size:13px; cursor:pointer; }
+    .fb button:hover { border-color:var(--accent); color:var(--accent); }
+    .done { font-size:13px; color:#3a9; font-weight:600; }
+    .empty { color:var(--muted); text-align:center; padding:48px 0; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="sun">🌇</span> Ohyep SunsetGlow</h1>
+  <div class="sub">推送记录与准确率反馈 · 出现朝/晚霞后点选烧的程度，帮助优化预测</div>
+
+  {% if stats %}
+  <div class="stats">
+    {% for s in stats %}
+    <div class="stat">
+      <div class="name">{{ s.source_label }} 准确率</div>
+      <div class="acc">{{ s.accuracy }}%</div>
+      <div class="cnt">{{ s.hits }}/{{ s.total }} 次报准（已反馈）</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not pushes %}
+    <div class="empty">还没有推送记录。当任一数据源预测达标时，这里会出现记录。</div>
+  {% endif %}
+
+  {% for p in pushes %}
+  <div class="card">
+    <div class="ev-head">
+      <div class="ev-title">{{ p.location }}<span class="kind">{{ p.kind }}</span></div>
+      <div class="ev-time">{{ p.event_time or p.event_date }}</div>
+    </div>
+    <div class="sources">
+      {% set srcs = p.triggered_sources | from_json %}
+      {% for s in srcs %}
+        <div>✅ <b>{{ s.label }}</b>：{{ s.reason }}</div>
+      {% endfor %}
+    </div>
+    <div class="fb">
+      {% if p.feedback %}
+        <span class="done">已反馈：{{ labels[p.feedback] }}</span>
+        <span class="ev-time">（{{ p.feedback_at }}）</span>
+      {% else %}
+        {% for key, label in labels.items() %}
+        <form method="post" action="/feedback/{{ p.id }}">
+          <input type="hidden" name="feedback" value="{{ key }}">
+          <button type="submit">{{ label }}</button>
+        </form>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+</body>
+</html>

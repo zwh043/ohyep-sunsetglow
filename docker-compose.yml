@@ -1,0 +1,16 @@
+services:
+  ohyep-sunsetbot:
+    build: .
+    image: ohyep-sunsetbot:latest
+    container_name: ohyep-sunsetbot
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+    env_file:
+      - path: .env      # 从 .env.example 复制并填入密钥
+        required: false
+    ports:
+      - "8080:8080"     # 反馈网页
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro   # 改配置不用重建镜像
+      - ./data:/app/data                    # 持久化数据库
