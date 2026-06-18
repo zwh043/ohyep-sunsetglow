@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 配置中的密钥（从 example 复制后填密钥，不要提交）
+config.yaml
+.env
+
+# 数据库与运行数据
+data/*.db
+data/
+
+# 系统
+.DS_Store
+*.log
